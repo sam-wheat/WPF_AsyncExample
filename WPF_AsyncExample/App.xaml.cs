@@ -2,6 +2,8 @@
 
 public partial class App : Application
 {
+    public App() => ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
     // protected override void OnStartup(StartupEventArgs e) => OnStartupAsync(e).ConfigureAwait(false).GetAwaiter().GetResult();
     // protected override void OnStartup(StartupEventArgs e) => Task.Run(async () => await OnStartupAsync(e)).ConfigureAwait(false).GetAwaiter().GetResult();
     // protected override void OnStartup(StartupEventArgs e) => Task.Run(async () => await OnStartupAsync(e)).GetAwaiter().GetResult();
@@ -10,7 +12,7 @@ public partial class App : Application
     // Need a turtle here.  
     
 
-    protected async Task OnStartupAsync(StartupEventArgs e)
+    protected async void OnStartupAsync(StartupEventArgs e)
     {
         base.OnStartup(e);
         
@@ -20,12 +22,13 @@ public partial class App : Application
             {
                 using (ILifetimeScope scope = host.Services.GetAutofacRoot())
                 {
+             
                     MainWindow mainWindow = scope.Resolve<MainWindow>();
                     await mainWindow.Initialize();
                     mainWindow.Show();
                 }
             }
-        }
+        }   
         catch (Exception ex)
         {
             string y = ex.ToString();
