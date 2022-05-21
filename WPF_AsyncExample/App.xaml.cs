@@ -2,23 +2,28 @@
 
 public partial class App : Application
 {
-    protected override void OnStartup(StartupEventArgs e) => OnStartupAsync(e).Wait(); // Deadlock
-    // protected override void OnStartup(StartupEventArgs e) => Task.Run(async () => await OnStartupAsync(e)).Wait();
+    // protected override void OnStartup(StartupEventArgs e) => OnStartupAsync(e).ConfigureAwait(false).GetAwaiter().GetResult();
+    // protected override void OnStartup(StartupEventArgs e) => Task.Run(async () => await OnStartupAsync(e)).ConfigureAwait(false).GetAwaiter().GetResult();
+    // protected override void OnStartup(StartupEventArgs e) => Task.Run(async () => await OnStartupAsync(e)).GetAwaiter().GetResult();
     // protected override void OnStartup(StartupEventArgs e) => Dispatcher.InvokeAsync(async () => await OnStartupAsync(e)).Wait();
+    protected override void OnStartup(StartupEventArgs e) => OnStartupAsync(e);
     // Need a turtle here.  
+    
 
     protected async Task OnStartupAsync(StartupEventArgs e)
     {
         base.OnStartup(e);
-
+        
         try
         {
-            IHost host = CreateHostBuilder(e.Args).Build();
-            using (ILifetimeScope scope = host.Services.GetAutofacRoot())
+            using (IHost host = CreateHostBuilder(e.Args).Build())
             {
-                MainWindow mainWindow = scope.Resolve<MainWindow>();
-                await mainWindow.Initialize();
-                mainWindow.Show(); 
+                using (ILifetimeScope scope = host.Services.GetAutofacRoot())
+                {
+                    MainWindow mainWindow = scope.Resolve<MainWindow>();
+                    await mainWindow.Initialize();
+                    mainWindow.Show();
+                }
             }
         }
         catch (Exception ex)
@@ -39,5 +44,11 @@ public partial class App : Application
         builder.RegisterType<MainWindowViewModel>().SingleInstance();
         builder.RegisterType<UserControl1>();
         builder.RegisterType<UserControl2>();
+
+        builder.Register<Func<UserControl1>>(c =>
+        {
+            IComponentContext cxt = c.Resolve<IComponentContext>();
+            return () => cxt.Resolve<UserControl1>();
+        });
     }
 }
